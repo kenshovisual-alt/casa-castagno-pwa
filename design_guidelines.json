@@ -1,0 +1,125 @@
+{
+  "project_name": "Casa Castagno Internal PWA",
+  "theme_and_archetype": {
+    "theme": "Light Theme",
+    "archetype": "Organic & Earthy (Archetype 1)",
+    "mood": "Tuscan countryside, stone, forest, olive trees, silence, restoration, heritage, slow living."
+  },
+  "colors": {
+    "backgrounds": {
+      "app": "#F5F1E8",
+      "card_surface": "#E7DFD1",
+      "sidebar": "#F5F1E8",
+      "overlay": "rgba(31, 33, 27, 0.4)"
+    },
+    "text": {
+      "primary": "#1F211B",
+      "secondary": "#2F3A2D",
+      "muted": "#B8AC98",
+      "inverse": "#F5F1E8"
+    },
+    "accents_and_ui": {
+      "olive_green": "#6F7B55",
+      "terracotta": "#A86848",
+      "soft_stone": "#B8AC98",
+      "deep_forest": "#2F3A2D"
+    },
+    "calendar_status": {
+      "direct": "#6F7B55",
+      "tuscany_now": "#A86848",
+      "other_agency": "#B8AC98",
+      "tentative": "#E7DFD1",
+      "blocked": "#4A4A4A"
+    },
+    "borders": {
+      "default": "rgba(184, 172, 152, 0.3)",
+      "focus": "#6F7B55"
+    }
+  },
+  "typography": {
+    "primary_heading": {
+      "family": "Cormorant Garamond, serif",
+      "usage": "Page titles, KPI values, section headers",
+      "weight": "400 to 600",
+      "tracking": "tracking-tight"
+    },
+    "secondary_body": {
+      "family": "Manrope, sans-serif",
+      "usage": "Body text, tables, form inputs, buttons, calendar events",
+      "weight": "400 to 500",
+      "tracking": "tracking-normal"
+    },
+    "labels_overlines": {
+      "family": "Manrope, sans-serif",
+      "usage": "Category labels, table headers, small metadata",
+      "weight": "600",
+      "tracking": "tracking-[0.2em]",
+      "transform": "uppercase",
+      "size": "text-xs"
+    }
+  },
+  "spacing_and_layout": {
+    "philosophy": "Generous Spacing Philosophy. The layout should feel like an editorial magazine, not a cramped IT dashboard.",
+    "container_padding": "Desktop: p-8 to p-12. Mobile: p-4 to p-6.",
+    "grid_system": "Bento Grid Protocol. Use gap-6 or gap-8. Mix spans to create visual tension.",
+    "navigation": "Desktop: Fixed sidebar with subtle right border. Mobile: Bottom tab bar with lucide-react icons.",
+    "cards": "Flat beige (#E7DFD1) cards. No drop shadows. 1px border (#B8AC98 with 30% opacity)."
+  },
+  "component_styling": {
+    "buttons": {
+      "primary": "bg-[#6F7B55] text-[#F5F1E8] rounded-md hover:bg-[#5A6345] transition-colors",
+      "secondary": "bg-transparent border border-[#B8AC98] text-[#1F211B] rounded-md hover:bg-[#E7DFD1]",
+      "ghost": "hover:bg-[#E7DFD1] text-[#2F3A2D]"
+    },
+    "inputs": {
+      "background": "#F5F1E8",
+      "border": "1px solid #B8AC98",
+      "focus": "ring-1 ring-[#6F7B55] border-[#6F7B55]",
+      "radius": "rounded-md"
+    },
+    "tables": {
+      "header": "text-xs uppercase tracking-[0.2em] text-[#B8AC98] border-b border-[#B8AC98]/30 pb-3",
+      "row": "border-b border-[#B8AC98]/20 hover:bg-[#E7DFD1]/50 transition-colors py-4"
+    },
+    "badges_tags": {
+      "style": "px-2.5 py-0.5 rounded-full text-xs font-medium border border-[#B8AC98]/30 text-[#1F211B]"
+    },
+    "border_radius": "Universal 6px to 8px (rounded-md to rounded-lg). Avoid full rounded corners except for avatars or badges."
+  },
+  "icons_and_media": {
+    "icon_library": "lucide-react",
+    "icon_style": "stroke-width: 1.5; size: 18px-20px; color: #2F3A2D",
+    "images": {
+      "hero_auth": {
+        "url": "https://images.unsplash.com/photo-1603034222368-fc53916f4eed?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2OTV8MHwxfHNlYXJjaHwxfHxzdG9uZSUyMHZpbGxhJTIwb2xpdmUlMjB0cmVlc3xlbnwwfHx8fDE3ODM0NTE1NTB8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Stone villa with olive trees. Use for auth screen background."
+      },
+      "empty_state_experiences": {
+        "url": "https://images.unsplash.com/photo-1631724604275-af3bbb5c904d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2ODl8MHwxfHNlYXJjaHwxfHxzbG93JTIwbGl2aW5nJTIwaW50ZXJpb3J8ZW58MHx8fHwxNzgzNDUxNTUwfDA&ixlib=rb-4.1.0&q=85",
+        "description": "Slow living interior setup. Excellent placeholder for empty states."
+      },
+      "dashboard_accent": {
+        "url": "https://images.unsplash.com/photo-1659907309594-4ef0ad0d25fa?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzB8MHwxfHNlYXJjaHwyfHx0dXNjYW4lMjBjb3VudHJ5c2lkZXxlbnwwfHx8fDE3ODM0NTE1NTB8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Tuscan countryside landscape. Use as a subtle decorative header image."
+      }
+    }
+  },
+  "motion_and_interactions": {
+    "general": "Minimal, non-distracting. Focus on tactile feedback.",
+    "hover": "Slight background darkening. No heavy transforms or bounce.",
+    "focus": "Clear ring-offset using #F5F1E8 background."
+  },
+  "accessibility_and_testing": {
+    "contrast": "Ensure text on #E7DFD1 meets APCA standard. Use #1F211B for primary text.",
+    "testing_attributes": "ALL interactive and key informational elements MUST include a data-testid attribute in kebab-case (e.g., data-testid='sidebar-nav-dashboard')."
+  },
+  "instructions_to_main_agent": [
+    "DO NOT use generic blue SaaS colors anywhere (including Shadcn defaults). Configure tailwind.config.js immediately with the provided hex codes.",
+    "Enforce 'Cormorant Garamond' for headings/KPIs and 'Manrope' for body.",
+    "Implement 'data-testid' attributes on all buttons, links, inputs, and major sections.",
+    "Construct the UI entirely using React (.js/jsx). Do not use .tsx files.",
+    "Strip all box-shadows from Shadcn components. Use flat colors and borders instead for a grounded, earthy look.",
+    "Calendar implementation must color-code blocks accurately based on the 'calendar_status' palette.",
+    "Ensure mobile PWA readiness: touch-friendly targets, bottom navigation, and no horizontal scroll overflow."
+  ]
+}
