@@ -1,0 +1,25 @@
+{
+  "short_name": "Casa Castagno",
+  "name": "Casa Castagno · Estate Manager",
+  "description": "Internal management app for the Casa Castagno estate.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F5F1E8",
+  "theme_color": "#6F7B55",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='24' fill='%236F7B55'/><text x='96' y='118' text-anchor='middle' font-family='Georgia,serif' font-size='96' fill='%23F5F1E8'>C</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='64' fill='%236F7B55'/><text x='256' y='320' text-anchor='middle' font-family='Georgia,serif' font-size='260' fill='%23F5F1E8'>C</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

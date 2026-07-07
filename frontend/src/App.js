@@ -1,56 +1,48 @@
-import { useEffect } from "react";
-import "@/App.css";
+import React from "react";
+import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
-import { HOME } from "@/constants/testIds";
+import AppLayout from "./components/Layout";
+import Dashboard from "./pages/Dashboard";
+import CalendarPage from "./pages/CalendarPage";
+import Bookings from "./pages/Bookings";
+import BookingForm from "./pages/BookingForm";
+import BookingDetail from "./pages/BookingDetail";
+import Finance from "./pages/Finance";
+import Experiences from "./pages/Experiences";
+import ExperienceForm from "./pages/ExperienceForm";
+import Providers from "./pages/Providers";
+import ProviderForm from "./pages/ProviderForm";
+import Documents from "./pages/Documents";
+import Property from "./pages/Property";
+import Tasks from "./pages/Tasks";
+import Settings from "./pages/Settings";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
-
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
-
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
-
-  return (
-    <div>
-      <header className="App-header">
-        <a
-          data-testid={HOME.emergentLink}
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
-};
-
-function App() {
+export default function App() {
   return (
     <div className="App">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
+          <Route element={<AppLayout />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/calendar" element={<CalendarPage />} />
+            <Route path="/bookings" element={<Bookings />} />
+            <Route path="/bookings/new" element={<BookingForm />} />
+            <Route path="/bookings/:id/edit" element={<BookingForm />} />
+            <Route path="/bookings/:id" element={<BookingDetail />} />
+            <Route path="/finance" element={<Finance />} />
+            <Route path="/experiences" element={<Experiences />} />
+            <Route path="/experiences/new" element={<ExperienceForm />} />
+            <Route path="/experiences/:id/edit" element={<ExperienceForm />} />
+            <Route path="/contacts" element={<Providers />} />
+            <Route path="/contacts/new" element={<ProviderForm />} />
+            <Route path="/contacts/:id/edit" element={<ProviderForm />} />
+            <Route path="/documents" element={<Documents />} />
+            <Route path="/property" element={<Property />} />
+            <Route path="/tasks" element={<Tasks />} />
+            <Route path="/settings" element={<Settings />} />
           </Route>
         </Routes>
       </BrowserRouter>
     </div>
   );
 }
-
-export default App;
