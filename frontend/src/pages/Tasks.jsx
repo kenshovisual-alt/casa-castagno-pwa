@@ -4,7 +4,7 @@ import { api } from "../lib/api";
 import { deleteWithUndo } from "../lib/deleteWithUndo";
 import { PageHeader } from "../components/Ui";
 import { TASK_TYPES, formatDate } from "../lib/constants";
-import { Plus, Trash2, AlertCircle } from "lucide-react";
+import { Plus, Trash2, AlertCircle, X } from "lucide-react";
 import { toast } from "sonner";
 
 const empty = { title: "", type: "other", priority: "medium", due_date: "", status: "open", notes: "", booking_id: "", provider_id: "", experience_id: "" };
@@ -62,6 +62,18 @@ export default function Tasks() {
 
       {showForm && (
         <div className="cc-card p-5 mb-6" data-testid="task-form">
+          <div className="flex justify-end mb-2">
+            <button
+              type="button"
+              onClick={() => setShowForm(false)}
+              aria-label="Cancel"
+              data-testid="btn-cancel-top-task"
+              className="flex items-center justify-center w-9 h-9 rounded-full border transition-colors"
+              style={{ borderColor: "var(--cc-border)", color: "var(--cc-forest)" }}
+            >
+              <X size={16} strokeWidth={1.75} />
+            </button>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <input className="cc-input md:col-span-2" placeholder="Title" value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} data-testid="task-f-title" />
             <select className="cc-input" value={draft.type} onChange={(e) => setDraft({ ...draft, type: e.target.value })}>

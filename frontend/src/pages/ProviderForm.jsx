@@ -33,7 +33,7 @@ export default function ProviderForm() {
 
   return (
     <form onSubmit={onSubmit} className="px-6 md:px-10 lg:px-14 py-10 max-w-[900px]" data-testid="prov-form">
-      <PageHeader overline={id ? "Edit" : "New"} title={id ? "Edit contact" : "New contact"} />
+      <PageHeader overline={id ? "Edit" : "New"} title={id ? "Edit contact" : "New contact"} onClose={() => navigate(-1)} />
       <section className="cc-card p-6 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Field label="Name"><input className="cc-input" value={p.name} onChange={(e) => set("name", e.target.value)} data-testid="prov-f-name" /></Field>

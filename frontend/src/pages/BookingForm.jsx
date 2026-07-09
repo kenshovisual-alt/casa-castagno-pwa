@@ -105,7 +105,7 @@ export default function BookingForm() {
 
   return (
     <form onSubmit={onSubmit} className="px-6 md:px-10 lg:px-14 py-10 max-w-[1100px]" data-testid="booking-form">
-      <PageHeader overline={id ? "Edit" : "New"} title={id ? "Edit booking" : "New booking"} />
+      <PageHeader overline={id ? "Edit" : "New"} title={id ? "Edit booking" : "New booking"} onClose={() => navigate(-1)} />
 
       <section className="cc-card p-6 mb-6">
         <h3 className="serif text-2xl mb-4" style={{ color: "var(--cc-forest)" }}>Guest & stay</h3>

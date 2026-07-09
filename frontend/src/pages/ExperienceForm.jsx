@@ -39,7 +39,7 @@ export default function ExperienceForm() {
 
   return (
     <form onSubmit={onSubmit} className="px-6 md:px-10 lg:px-14 py-10 max-w-[900px]" data-testid="exp-form">
-      <PageHeader overline={id ? "Edit" : "New"} title={id ? "Edit experience" : "New experience"} />
+      <PageHeader overline={id ? "Edit" : "New"} title={id ? "Edit experience" : "New experience"} onClose={() => navigate(-1)} />
       <section className="cc-card p-6 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Field label="Name"><input className="cc-input" value={e.name} onChange={(ev) => set("name", ev.target.value)} data-testid="exp-f-name" /></Field>

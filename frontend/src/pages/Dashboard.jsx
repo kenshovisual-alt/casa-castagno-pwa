@@ -5,7 +5,7 @@ import { PageHeader, SourceBadge, PageSkeleton } from "../components/Ui";
 import { formatMoney, formatDate, SOURCE_MAP } from "../lib/constants";
 import {
   Coins, TrendingUp, CalendarClock, ArrowDown, ArrowUp, Percent,
-  Sparkles, Users, FileText, Plus, StickyNote, AlertCircle
+  Sparkles, Users, FileText, Plus, StickyNote, AlertCircle, BookOpen
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, PieChart, Pie, Cell } from "recharts";
 import { toast } from "sonner";
@@ -56,61 +56,64 @@ export default function Dashboard() {
   const hasData = (stats.next_bookings || []).length > 0;
 
   return (
-    <div className="px-6 md:px-10 lg:px-14 py-10 max-w-[1400px]">
-      <PageHeader
-        overline="Overview"
-        title="Buongiorno Eren"
-        action={
-          <div className="flex flex-wrap gap-2">
-            <Link to="/bookings/new" className="cc-btn-primary inline-flex items-center gap-2" data-testid="qa-add-booking">
-              <Plus size={16} /> Add booking
-            </Link>
-            {!hasData && (
-              <button className="cc-btn-ghost" onClick={doSeed} data-testid="btn-seed">
-                Load sample data
-              </button>
-            )}
-          </div>
-        }
+    <div className="max-w-[1400px]">
+      <div
+        className="relative px-6 md:px-10 lg:px-14 pt-10"
+        style={{
+          backgroundImage: `linear-gradient(to bottom, transparent 55%, var(--cc-bg) 100%), linear-gradient(to right, var(--cc-bg) 0%, var(--cc-bg) 22%, transparent 70%), url(/imagedashboard.png)`,
+          backgroundSize: "cover",
+          backgroundPosition: "center 35%",
+          backgroundRepeat: "no-repeat",
+        }}
       >
-        <p className="mt-2 text-base" style={{ color: "var(--cc-muted)" }}>
-          A calm view of the estate today.
-        </p>
-      </PageHeader>
+        <PageHeader overline="Overview" title="Buongiorno Eren">
+          <p className="mt-2 text-base" style={{ color: "var(--cc-muted)" }}>
+            A calm view of the estate today.
+          </p>
+        </PageHeader>
 
-      {/* Quick actions */}
-      <div className="flex flex-wrap gap-3 mb-8">
-        {[
-          { to: "/experiences/new", icon: Sparkles, label: "Experience", testId: "qa-experience" },
-          { to: "/contacts/new", icon: Users, label: "Provider", testId: "qa-provider" },
-          { to: "/documents", icon: FileText, label: "Document", testId: "qa-document" },
-          { to: "/tasks", icon: StickyNote, label: "Task", testId: "qa-note" },
-        ].map(({ to, icon: Icon, label, testId }) => (
-          <Link
-            key={testId}
-            to={to}
-            data-testid={testId}
-            className="group flex items-center gap-3 pl-3 pr-4 py-2.5 rounded-lg border transition-all hover:shadow-sm"
-            style={{ borderColor: "var(--cc-border)", background: "var(--cc-card)" }}
-          >
-            <span className="relative flex items-center justify-center w-8 h-8 rounded-full shrink-0">
-              <span
-                className="flex items-center justify-center w-full h-full rounded-full transition-colors"
-                style={{ background: "var(--cc-bg)", color: "var(--cc-olive)" }}
-              >
-                <Icon size={15} strokeWidth={1.75} className="transition-transform group-hover:scale-110" />
+        {/* Quick actions */}
+        <div className="flex flex-wrap gap-3 pb-8">
+          {!hasData && (
+            <button className="cc-btn-ghost" onClick={doSeed} data-testid="btn-seed">
+              Load sample data
+            </button>
+          )}
+          {[
+            { to: "/bookings/new", icon: BookOpen, label: "Booking", testId: "qa-add-booking" },
+            { to: "/experiences/new", icon: Sparkles, label: "Experience", testId: "qa-experience" },
+            { to: "/contacts/new", icon: Users, label: "Provider", testId: "qa-provider" },
+            { to: "/documents", icon: FileText, label: "Document", testId: "qa-document" },
+            { to: "/tasks", icon: StickyNote, label: "Task", testId: "qa-note" },
+          ].map(({ to, icon: Icon, label, testId }) => (
+            <Link
+              key={testId}
+              to={to}
+              data-testid={testId}
+              className="group flex items-center gap-3 pl-3 pr-4 py-2.5 rounded-lg border transition-all hover:shadow-sm"
+              style={{ borderColor: "var(--cc-border)", background: "var(--cc-card)" }}
+            >
+              <span className="relative flex items-center justify-center w-8 h-8 rounded-full shrink-0">
+                <span
+                  className="flex items-center justify-center w-full h-full rounded-full transition-colors"
+                  style={{ background: "var(--cc-bg)", color: "var(--cc-olive)" }}
+                >
+                  <Icon size={15} strokeWidth={1.75} className="transition-transform group-hover:scale-110" />
+                </span>
+                <span
+                  className="absolute -bottom-0.5 -right-0.5 flex items-center justify-center w-3.5 h-3.5 rounded-full border"
+                  style={{ background: "var(--cc-olive)", borderColor: "var(--cc-card)" }}
+                >
+                  <Plus size={9} strokeWidth={3} color="var(--cc-bg)" />
+                </span>
               </span>
-              <span
-                className="absolute -bottom-0.5 -right-0.5 flex items-center justify-center w-3.5 h-3.5 rounded-full border"
-                style={{ background: "var(--cc-olive)", borderColor: "var(--cc-card)" }}
-              >
-                <Plus size={9} strokeWidth={3} color="var(--cc-bg)" />
-              </span>
-            </span>
-            <span className="text-sm font-medium" style={{ color: "var(--cc-forest)" }}>{label}</span>
-          </Link>
-        ))}
+              <span className="text-sm font-medium" style={{ color: "var(--cc-forest)" }}>{label}</span>
+            </Link>
+          ))}
+        </div>
       </div>
+
+      <div className="px-6 md:px-10 lg:px-14 pb-10">
 
       {/* KPI grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -236,6 +239,7 @@ export default function Dashboard() {
             </ul>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

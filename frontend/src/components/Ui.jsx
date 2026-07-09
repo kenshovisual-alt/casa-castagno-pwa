@@ -1,7 +1,7 @@
 import React from "react";
 import { SOURCE_MAP, STATUS_MAP } from "../lib/constants";
 import { useTheme } from "../hooks/useTheme";
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, X } from "lucide-react";
 
 export function SourceBadge({ source }) {
   const s = SOURCE_MAP[source] || SOURCE_MAP.direct;
@@ -31,7 +31,7 @@ export function StatusBadge({ status }) {
   );
 }
 
-export function PageHeader({ overline, title, action, children }) {
+export function PageHeader({ overline, title, action, onClose, children }) {
   return (
     <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div>
@@ -41,7 +41,21 @@ export function PageHeader({ overline, title, action, children }) {
         </h1>
         {children}
       </div>
-      {action}
+      <div className="flex items-center gap-3">
+        {action}
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Cancel"
+            data-testid="btn-cancel-top"
+            className="flex items-center justify-center w-9 h-9 rounded-full border transition-colors"
+            style={{ borderColor: "var(--cc-border)", color: "var(--cc-forest)" }}
+          >
+            <X size={16} strokeWidth={1.75} />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
