@@ -1,26 +1,35 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { api } from "../lib/api";
+import { deleteWithUndo } from "../lib/deleteWithUndo";
 import { PageHeader } from "../components/Ui";
 import { TASK_TYPES, formatDate } from "../lib/constants";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
-const empty = { title: "", type: "other", priority: "medium", due_date: "", status: "open", notes: "" };
+const empty = { title: "", type: "other", priority: "medium", due_date: "", status: "open", notes: "", booking_id: "", provider_id: "", experience_id: "" };
 const PRIORITIES = ["low", "medium", "high"];
 const STATUSES = ["open", "in_progress", "done"];
 
+const isOverdue = (t) => t.due_date && t.status !== "done" && t.due_date < new Date().toISOString().slice(0, 10);
+
 export default function Tasks() {
   const [items, setItems] = useState([]);
+  const [bookings, setBookings] = useState([]);
   const [f, setF] = useState({ status: "all", priority: "all" });
   const [showForm, setShowForm] = useState(false);
   const [draft, setDraft] = useState(empty);
   const load = () => api.list("tasks").then(setItems);
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); api.list("bookings").then(setBookings); }, []);
 
   const filtered = useMemo(() => items.filter((t) =>
     (f.status === "all" || t.status === f.status) &&
     (f.priority === "all" || t.priority === f.priority)
-  ), [items, f]);
+  ).sort((a, b) => {
+    const overdueDiff = Number(isOverdue(b)) - Number(isOverdue(a));
+    if (overdueDiff !== 0) return overdueDiff;
+    return (a.due_date || "").localeCompare(b.due_date || "");
+  }), [items, f]);
 
   const add = async () => {
     if (!draft.title) return toast.error("Title required");
@@ -28,11 +37,17 @@ export default function Tasks() {
     setDraft(empty); setShowForm(false); load(); toast.success("Task added");
   };
   const update = async (id, patch) => {
-    await api.update("tasks", id, patch); load();
+    setItems((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t))); // optimistic
+    try {
+      await api.update("tasks", id, patch);
+    } catch {
+      toast.error("Could not update task");
+      load();
+    }
   };
-  const del = async (id) => {
-    if (!window.confirm("Delete task?")) return;
-    await api.remove("tasks", id); load();
+  const del = (task) => {
+    setItems((prev) => prev.filter((t) => t.id !== task.id));
+    deleteWithUndo({ resource: "tasks", record: task, label: "Task", onSettled: load });
   };
 
   const prioTone = (p) => p === "high" ? "var(--cc-terracotta)" : p === "medium" ? "var(--cc-olive)" : "var(--cc-muted)";
@@ -59,6 +74,10 @@ export default function Tasks() {
             <select className="cc-input" value={draft.status} onChange={(e) => setDraft({ ...draft, status: e.target.value })}>
               {STATUSES.map((s) => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
             </select>
+            <select className="cc-input md:col-span-2" value={draft.booking_id} onChange={(e) => setDraft({ ...draft, booking_id: e.target.value })} data-testid="task-f-booking">
+              <option value="">Link to booking (optional)…</option>
+              {bookings.map((b) => <option key={b.id} value={b.id}>{b.guest_name || "Blocked"} · {b.checkin}</option>)}
+            </select>
             <textarea className="cc-input md:col-span-2" rows={2} placeholder="Notes" value={draft.notes} onChange={(e) => setDraft({ ...draft, notes: e.target.value })} />
           </div>
           <div className="flex justify-end gap-2 mt-3">
@@ -80,22 +99,43 @@ export default function Tasks() {
       </div>
 
       <div className="space-y-3">
-        {filtered.map((t) => (
-          <div key={t.id} className="cc-card p-4 flex items-center gap-4" data-testid={`task-row-${t.id}`}>
-            <input type="checkbox" checked={t.status === "done"} onChange={(e) => update(t.id, { status: e.target.checked ? "done" : "open" })} />
-            <div className="flex-1">
-              <div className="serif text-lg" style={{ color: "var(--cc-forest)", textDecoration: t.status === "done" ? "line-through" : "none" }}>{t.title}</div>
-              <div className="text-xs mt-1 flex flex-wrap gap-3" style={{ color: "var(--cc-muted)" }}>
-                <span className="uppercase tracking-widest">{t.type}</span>
-                <span style={{ color: prioTone(t.priority) }}>● {t.priority}</span>
-                {t.due_date && <span>Due {formatDate(t.due_date)}</span>}
-                <span>{t.status.replace("_", " ")}</span>
+        {filtered.map((t) => {
+          const overdue = isOverdue(t);
+          const linkedBooking = t.booking_id && bookings.find((b) => b.id === t.booking_id);
+          return (
+            <div
+              key={t.id}
+              className="cc-card p-4 flex items-center gap-4"
+              style={overdue ? { borderColor: "var(--cc-terracotta)" } : undefined}
+              data-testid={`task-row-${t.id}`}
+            >
+              <input type="checkbox" checked={t.status === "done"} onChange={(e) => update(t.id, { status: e.target.checked ? "done" : "open" })} />
+              <div className="flex-1">
+                <div className="serif text-lg" style={{ color: "var(--cc-forest)", textDecoration: t.status === "done" ? "line-through" : "none" }}>{t.title}</div>
+                <div className="text-xs mt-1 flex flex-wrap gap-3 items-center" style={{ color: "var(--cc-muted)" }}>
+                  <span className="uppercase tracking-widest">{t.type}</span>
+                  <span style={{ color: prioTone(t.priority) }}>● {t.priority}</span>
+                  {t.due_date && (
+                    <span
+                      className="inline-flex items-center gap-1"
+                      style={overdue ? { color: "var(--cc-terracotta)", fontWeight: 600 } : undefined}
+                      data-testid={overdue ? `task-overdue-${t.id}` : undefined}
+                    >
+                      {overdue && <AlertCircle size={12} />}
+                      {overdue ? "Overdue" : "Due"} {formatDate(t.due_date)}
+                    </span>
+                  )}
+                  <span>{t.status.replace("_", " ")}</span>
+                  {linkedBooking && (
+                    <Link to={`/bookings/${linkedBooking.id}`} style={{ color: "var(--cc-olive)" }}>{linkedBooking.guest_name || "Blocked"}</Link>
+                  )}
+                </div>
+                {t.notes && <div className="text-xs mt-1" style={{ color: "var(--cc-muted)" }}>{t.notes}</div>}
               </div>
-              {t.notes && <div className="text-xs mt-1" style={{ color: "var(--cc-muted)" }}>{t.notes}</div>}
+              <button className="cc-btn-ghost" onClick={() => del(t)} data-testid={`task-del-${t.id}`}><Trash2 size={14} /></button>
             </div>
-            <button className="cc-btn-ghost" onClick={() => del(t.id)} data-testid={`task-del-${t.id}`}><Trash2 size={14} /></button>
-          </div>
-        ))}
+          );
+        })}
         {filtered.length === 0 && <div className="cc-surface p-10 text-center text-sm" style={{ color: "var(--cc-muted)" }}>All calm. No tasks.</div>}
       </div>
     </div>

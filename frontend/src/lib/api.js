@@ -15,6 +15,10 @@ export const api = {
   updateSingleton: (r, data) => client.put(`/${r}`, data).then((x) => x.data),
   stats: () => client.get(`/stats/dashboard`).then((x) => x.data),
   seed: () => client.post(`/seed`).then((x) => x.data),
+  getInvoice: (bookingId) => client.get(`/bookings/${bookingId}/invoice`).then((x) => x.data),
+  generateInvoice: (bookingId) => client.post(`/bookings/${bookingId}/invoice`).then((x) => x.data),
+  fileUrl: (documentId) => `${API}/documents/${documentId}/file`,
+  exportAll: () => client.get(`/export`).then((x) => x.data),
 };
 
 export default api;

@@ -9,17 +9,18 @@ export const SOURCES = [
 export const SOURCE_MAP = Object.fromEntries(SOURCES.map((s) => [s.value, s]));
 
 export const STATUSES = [
-  { value: "enquiry", label: "Enquiry" },
-  { value: "tentative", label: "Tentative" },
-  { value: "confirmed", label: "Confirmed" },
-  { value: "deposit_paid", label: "Deposit paid" },
-  { value: "fully_paid", label: "Fully paid" },
-  { value: "checked_in", label: "Checked in" },
-  { value: "checked_out", label: "Checked out" },
-  { value: "cancelled", label: "Cancelled" },
-  { value: "blocked", label: "Blocked" },
+  { value: "enquiry", label: "Enquiry", color: "#8A8270" },
+  { value: "tentative", label: "Tentative", color: "#B8863E" },
+  { value: "confirmed", label: "Confirmed", color: "#6F7B55" },
+  { value: "deposit_paid", label: "Deposit paid", color: "#8A9273" },
+  { value: "fully_paid", label: "Fully paid", color: "#4F6B3F" },
+  { value: "checked_in", label: "Checked in", color: "#3F6B6B" },
+  { value: "checked_out", label: "Checked out", color: "#6b6b60" },
+  { value: "cancelled", label: "Cancelled", color: "#B0554A" },
+  { value: "blocked", label: "Blocked", color: "#4A4A4A" },
 ];
 export const STATUS_LABEL = Object.fromEntries(STATUSES.map((s) => [s.value, s.label]));
+export const STATUS_MAP = Object.fromEntries(STATUSES.map((s) => [s.value, s]));
 
 export const EXPERIENCE_CATEGORIES = [
   { value: "on_estate", label: "On the estate" },
@@ -107,6 +108,9 @@ export function formatDate(iso) {
   return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
 
+// Mirrors backend/server.py's _compute_finance() — keep both in sync.
+// `total` is everything the guest owes (rental net of commission + cleaning + extras + experiences);
+// `balance` is the gross rental plus those extras, minus whatever deposit has already been paid.
 export function computeFinance(b) {
   const gross = Number(b.gross_amount || 0);
   const pct = b.source === "direct" ? 0 : Number(b.commission_pct || 0);
@@ -117,6 +121,6 @@ export function computeFinance(b) {
   const clean = Number(b.cleaning_fee || 0);
   return {
     commission, net, total: net + extras + exp + clean,
-    balance: gross - Number(b.deposit_amount || 0),
+    balance: gross + clean + extras + exp - Number(b.deposit_amount || 0),
   };
 }

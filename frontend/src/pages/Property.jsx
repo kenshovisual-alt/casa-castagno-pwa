@@ -50,7 +50,7 @@ export default function Property() {
       </PageHeader>
 
       <section className="cc-card p-6 mb-6">
-        <div className="overline mb-3">At a glance</div>
+        <div className="cc-overline mb-3">At a glance</div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {FACTS.map((f) => (
             <div key={f} className="p-3 rounded-md text-sm border" style={{ borderColor: "var(--cc-border)", background: "var(--cc-bg)", color: "var(--cc-forest)" }}>{f}</div>

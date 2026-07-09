@@ -15,6 +15,34 @@
   --cc-border: rgba(184, 172, 152, 0.35);
 }
 
+:root[data-theme="dark"] {
+  --cc-bg: #1B1D17;
+  --cc-card: #262920;
+  --cc-stone: #8A8270;
+  --cc-olive: #8FA06A;
+  --cc-olive-dark: #A3B47E;
+  --cc-forest: #E4E0D2;
+  --cc-terracotta: #D08A62;
+  --cc-text: #EDE9DC;
+  --cc-muted: #A6A18F;
+  --cc-border: rgba(166, 161, 143, 0.2);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --cc-bg: #1B1D17;
+    --cc-card: #262920;
+    --cc-stone: #8A8270;
+    --cc-olive: #8FA06A;
+    --cc-olive-dark: #A3B47E;
+    --cc-forest: #E4E0D2;
+    --cc-terracotta: #D08A62;
+    --cc-text: #EDE9DC;
+    --cc-muted: #A6A18F;
+    --cc-border: rgba(166, 161, 143, 0.2);
+  }
+}
+
 @layer base {
   :root {
     --background: 42 40% 93%;          /* #F5F1E8 */
@@ -43,6 +71,52 @@
     --chart-5: 42 25% 55%;
     --radius: 0.5rem;
   }
+
+  :root[data-theme="dark"] {
+    --background: 90 8% 10%;           /* #1B1D17 */
+    --foreground: 48 24% 90%;          /* #EDE9DC */
+    --card: 84 10% 14%;                /* #262920 */
+    --card-foreground: 48 24% 90%;
+    --popover: 84 10% 14%;
+    --popover-foreground: 48 24% 90%;
+    --primary: 92 22% 51%;             /* #8FA06A */
+    --primary-foreground: 90 8% 10%;
+    --secondary: 42 12% 47%;           /* stone */
+    --secondary-foreground: 48 24% 90%;
+    --muted: 84 10% 14%;
+    --muted-foreground: 42 10% 65%;
+    --accent: 22 55% 62%;              /* terracotta */
+    --accent-foreground: 90 8% 10%;
+    --destructive: 8 55% 55%;
+    --destructive-foreground: 48 24% 90%;
+    --border: 42 8% 30%;
+    --input: 42 8% 25%;
+    --ring: 92 22% 51%;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --background: 90 8% 10%;
+      --foreground: 48 24% 90%;
+      --card: 84 10% 14%;
+      --card-foreground: 48 24% 90%;
+      --popover: 84 10% 14%;
+      --popover-foreground: 48 24% 90%;
+      --primary: 92 22% 51%;
+      --primary-foreground: 90 8% 10%;
+      --secondary: 42 12% 47%;
+      --secondary-foreground: 48 24% 90%;
+      --muted: 84 10% 14%;
+      --muted-foreground: 42 10% 65%;
+      --accent: 22 55% 62%;
+      --accent-foreground: 90 8% 10%;
+      --destructive: 8 55% 55%;
+      --destructive-foreground: 48 24% 90%;
+      --border: 42 8% 30%;
+      --input: 42 8% 25%;
+      --ring: 92 22% 51%;
+    }
+  }
 }
 
 @layer base {
@@ -54,19 +128,21 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     margin: 0;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
   h1, h2, h3, h4, .serif {
     font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
     font-weight: 500;
     letter-spacing: -0.01em;
   }
-  .overline {
+  .cc-overline {
     font-family: 'Manrope', sans-serif;
     text-transform: uppercase;
     letter-spacing: 0.2em;
     font-size: 0.7rem;
     font-weight: 600;
     color: var(--cc-muted);
+    text-decoration-line: none;
   }
   ::selection { background: rgba(111, 123, 85, 0.25); }
 }
@@ -133,6 +209,7 @@
     border: 1px solid var(--cc-border);
     background: var(--cc-bg);
     color: var(--cc-forest);
+    white-space: nowrap;
   }
 }
 

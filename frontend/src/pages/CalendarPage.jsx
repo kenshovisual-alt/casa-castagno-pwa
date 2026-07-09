@@ -66,7 +66,7 @@ export default function CalendarPage() {
           <div className="serif text-2xl ml-3" style={{ color: "var(--cc-forest)" }}>{monthLabel}</div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="overline">Filter</span>
+          <span className="cc-overline">Filter</span>
           <select
             className="cc-input w-auto"
             value={filterSource}
@@ -80,7 +80,7 @@ export default function CalendarPage() {
       </div>
 
       <div className="cc-card p-3">
-        <div className="grid grid-cols-7 gap-2 text-center overline pb-2">
+        <div className="grid grid-cols-7 gap-2 text-center cc-overline pb-2">
           {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => <div key={d}>{d}</div>)}
         </div>
         <div className="grid grid-cols-7 gap-2">

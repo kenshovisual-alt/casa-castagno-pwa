@@ -1,13 +1,37 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { api } from "../lib/api";
 import { PageHeader } from "../components/Ui";
 import { formatMoney, formatDate, nightsBetween, computeFinance, SOURCE_MAP } from "../lib/constants";
-import { Download } from "lucide-react";
+import { Download, FileText } from "lucide-react";
+import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from "recharts";
 
 export default function Finance() {
   const [bookings, setBookings] = React.useState([]);
-  useEffect(() => { api.list("bookings").then(setBookings); }, []);
+  const [invoicesByBooking, setInvoicesByBooking] = useState({});
+  const [generatingId, setGeneratingId] = useState(null);
+
+  useEffect(() => {
+    api.list("bookings").then(setBookings);
+    api.list("documents").then((docs) => {
+      const map = {};
+      docs.filter((d) => d.category === "invoices" && d.booking_id).forEach((d) => { map[d.booking_id] = d; });
+      setInvoicesByBooking(map);
+    });
+  }, []);
+
+  const onGenerateInvoice = async (bookingId) => {
+    setGeneratingId(bookingId);
+    try {
+      const doc = await api.generateInvoice(bookingId);
+      setInvoicesByBooking((prev) => ({ ...prev, [bookingId]: doc }));
+      toast.success("Invoice generated");
+    } catch {
+      toast.error("Could not generate invoice");
+    } finally {
+      setGeneratingId(null);
+    }
+  };
 
   const stats = useMemo(() => {
     const active = bookings.filter((b) => b.status !== "cancelled" && b.status !== "blocked");
@@ -19,9 +43,27 @@ export default function Finance() {
     const avgNightly = nights ? gross / nights : 0;
     const direct = active.filter((b) => b.source === "direct").reduce((s, b) => s + Number(b.gross_amount || 0), 0);
     const agency = gross - direct;
-    const pending = active.filter((b) => !b.balance_paid).reduce((s, b) => s + Number(b.gross_amount || 0) - Number(b.deposit_amount || 0), 0);
+    const pending = active.filter((b) => !b.balance_paid).reduce((s, b) => s + computeFinance(b).balance, 0);
     const paidCount = active.filter((b) => b.balance_paid).length;
     const cancelledValue = bookings.filter((b) => b.status === "cancelled").reduce((s, b) => s + Number(b.gross_amount || 0), 0);
+
+    // Occupancy is scoped to the current calendar year so it stays a meaningful 0-100%
+    // instead of accumulating across every booking ever made (see Dashboard for the same logic).
+    const year = new Date().getFullYear();
+    const yearStart = new Date(year, 0, 1);
+    const yearEnd = new Date(year + 1, 0, 1);
+    const isLeap = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+    const daysInYear = isLeap ? 366 : 365;
+    const nightsThisYear = active.reduce((s, b) => {
+      if (!b.checkin || !b.checkout) return s;
+      const ci = new Date(b.checkin);
+      const co = new Date(b.checkout);
+      const overlapStart = ci > yearStart ? ci : yearStart;
+      const overlapEnd = co < yearEnd ? co : yearEnd;
+      const overlapNights = Math.max(0, Math.round((overlapEnd - overlapStart) / 86400000));
+      return s + overlapNights;
+    }, 0);
+    const occupancyPct = Math.round((nightsThisYear / daysInYear) * 100);
 
     // monthly bars
     const bymonth = {};
@@ -33,7 +75,7 @@ export default function Finance() {
     });
     const series = Object.entries(bymonth).sort().map(([k, v]) => ({ month: k, revenue: v }));
 
-    return { active, gross, commission, net, nights, avgBooking, avgNightly, direct, agency, pending, paidCount, cancelledValue, series };
+    return { active, gross, commission, net, nights, avgBooking, avgNightly, direct, agency, pending, paidCount, cancelledValue, series, nightsThisYear, occupancyPct };
   }, [bookings]);
 
   const exportCsv = () => {
@@ -56,7 +98,7 @@ export default function Finance() {
 
   const Card = ({ label, value }) => (
     <div className="cc-card p-5">
-      <div className="overline mb-2">{label}</div>
+      <div className="cc-overline mb-2">{label}</div>
       <div className="cc-kpi-value">{value}</div>
     </div>
   );
@@ -85,19 +127,19 @@ export default function Finance() {
         <Card label="Pending payments" value={formatMoney(stats.pending)} />
         <Card label="Paid bookings" value={stats.paidCount} />
         <Card label="Cancelled value" value={formatMoney(stats.cancelledValue)} />
-        <Card label="Occupancy" value={`${Math.round(stats.nights / 365 * 100)}%`} />
+        <Card label={`Occupancy (${new Date().getFullYear()})`} value={`${stats.occupancyPct}%`} />
       </div>
 
       <div className="cc-card p-6 mb-8">
-        <div className="overline mb-4">Revenue by month</div>
+        <div className="cc-overline mb-4">Revenue by month</div>
         <div style={{ width: "100%", height: 260 }}>
           <ResponsiveContainer>
             <BarChart data={stats.series}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#B8AC98" opacity={0.3} />
-              <XAxis dataKey="month" tick={{ fill: "#6b6b60", fontSize: 11 }} />
-              <YAxis tick={{ fill: "#6b6b60", fontSize: 11 }} />
-              <Tooltip contentStyle={{ background: "#F5F1E8", border: "1px solid #B8AC98" }} formatter={(v) => formatMoney(v)} />
-              <Bar dataKey="revenue" fill="#6F7B55" radius={[6, 6, 0, 0]} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--cc-stone)" opacity={0.3} />
+              <XAxis dataKey="month" tick={{ fill: "var(--cc-muted)", fontSize: 11 }} />
+              <YAxis tick={{ fill: "var(--cc-muted)", fontSize: 11 }} />
+              <Tooltip contentStyle={{ background: "var(--cc-bg)", border: "1px solid var(--cc-stone)", color: "var(--cc-text)" }} formatter={(v) => formatMoney(v)} />
+              <Bar dataKey="revenue" fill="var(--cc-olive)" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -107,7 +149,7 @@ export default function Finance() {
         <table className="w-full">
           <thead>
             <tr>
-              {["Guest", "Dates", "Source", "Gross", "Comm %", "Comm", "Net", "Deposit", "Balance", "Status"].map((h) => (
+              {["Guest", "Dates", "Source", "Gross", "Comm %", "Comm", "Net", "Deposit", "Balance", "Status", "Invoice"].map((h) => (
                 <th key={h} className="cc-table-header text-left px-4 py-3 border-b" style={{ borderColor: "var(--cc-border)" }}>{h}</th>
               ))}
             </tr>
@@ -127,6 +169,30 @@ export default function Finance() {
                   <td className="px-4 py-3 text-sm">{formatMoney(b.deposit_amount, b.currency)}</td>
                   <td className="px-4 py-3 text-sm">{formatMoney(f.balance, b.currency)}</td>
                   <td className="px-4 py-3 text-xs">{b.status}</td>
+                  <td className="px-4 py-3">
+                    {invoicesByBooking[b.id] ? (
+                      <a
+                        href={api.fileUrl(invoicesByBooking[b.id].id)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs whitespace-nowrap"
+                        style={{ color: "var(--cc-olive)" }}
+                        data-testid={`finance-download-invoice-${b.id}`}
+                      >
+                        <Download size={13} /> Download
+                      </a>
+                    ) : (
+                      <button
+                        onClick={() => onGenerateInvoice(b.id)}
+                        disabled={generatingId === b.id}
+                        className="inline-flex items-center gap-1.5 text-xs whitespace-nowrap"
+                        style={{ color: "var(--cc-muted)" }}
+                        data-testid={`finance-generate-invoice-${b.id}`}
+                      >
+                        <FileText size={13} /> {generatingId === b.id ? "Generating…" : "Generate"}
+                      </button>
+                    )}
+                  </td>
                 </tr>
               );
             })}

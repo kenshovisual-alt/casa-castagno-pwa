@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../lib/api";
-import { PageHeader, SourceBadge, StatusBadge } from "../components/Ui";
+import { PageHeader, SourceBadge, StatusBadge, PageSkeleton } from "../components/Ui";
 import { CHECKLIST_ITEMS, formatDate, formatMoney, computeFinance, nightsBetween } from "../lib/constants";
 import { toast } from "sonner";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, FileText, Download, RefreshCw, Plus, X } from "lucide-react";
 
 const Row = ({ label, value }) => (
   <div className="flex justify-between py-2 border-b" style={{ borderColor: "var(--cc-border)" }}>
@@ -18,21 +18,77 @@ export default function BookingDetail() {
   const navigate = useNavigate();
   const [b, setB] = useState(null);
   const [experiences, setExperiences] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [documents, setDocuments] = useState([]);
+  const [invoice, setInvoice] = useState(null);
+  const [invoiceLoading, setInvoiceLoading] = useState(false);
+  const [addingExperience, setAddingExperience] = useState(false);
 
   useEffect(() => {
     api.get("bookings", id).then(setB);
     api.list("experiences").then(setExperiences);
+    api.list("tasks").then((all) => setTasks(all.filter((t) => t.booking_id === id)));
+    api.list("documents").then((all) => setDocuments(all.filter((d) => d.booking_id === id)));
+    api.getInvoice(id).then(setInvoice).catch(() => setInvoice(null));
   }, [id]);
 
-  if (!b) return <div className="p-8">Loading…</div>;
+  const onGenerateInvoice = async () => {
+    setInvoiceLoading(true);
+    try {
+      const doc = await api.generateInvoice(id);
+      setInvoice(doc);
+      toast.success(invoice ? "Invoice regenerated" : "Invoice generated");
+    } catch {
+      toast.error("Could not generate invoice");
+    } finally {
+      setInvoiceLoading(false);
+    }
+  };
+
+  if (!b) return <PageSkeleton cards={3} />;
 
   const fin = computeFinance(b);
   const nights = nightsBetween(b.checkin, b.checkout);
 
   const toggleChecklist = async (k) => {
+    const prev = b;
     const checklist = { ...(b.checklist || {}), [k]: !(b.checklist?.[k]) };
-    const updated = await api.update("bookings", b.id, { checklist });
-    setB(updated);
+    setB((p) => ({ ...p, checklist })); // optimistic
+    try {
+      const updated = await api.update("bookings", b.id, { checklist });
+      setB(updated);
+    } catch {
+      setB(prev);
+      toast.error("Could not update checklist");
+    }
+  };
+
+  const linkExperience = async (experienceId) => {
+    if (!experienceId || (b.experience_ids || []).includes(experienceId)) {
+      setAddingExperience(false);
+      return;
+    }
+    const experience_ids = [...(b.experience_ids || []), experienceId];
+    try {
+      const updated = await api.update("bookings", b.id, { experience_ids });
+      setB(updated);
+      toast.success("Experience linked");
+    } catch {
+      toast.error("Could not link experience");
+    } finally {
+      setAddingExperience(false);
+    }
+  };
+
+  const unlinkExperience = async (experienceId) => {
+    const experience_ids = (b.experience_ids || []).filter((eid) => eid !== experienceId);
+    try {
+      const updated = await api.update("bookings", b.id, { experience_ids });
+      setB(updated);
+      toast.success("Experience unlinked");
+    } catch {
+      toast.error("Could not unlink experience");
+    }
   };
 
   const onDelete = async () => {
@@ -60,7 +116,7 @@ export default function BookingDetail() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <section className="cc-card p-6">
-            <div className="overline mb-3">Stay</div>
+            <div className="cc-overline mb-3">Stay</div>
             <Row label="Check-in" value={`${formatDate(b.checkin)} · ${b.arrival_time || "—"}`} />
             <Row label="Check-out" value={`${formatDate(b.checkout)} · ${b.departure_time || "—"}`} />
             <Row label="Nights" value={nights} />
@@ -71,12 +127,47 @@ export default function BookingDetail() {
           </section>
 
           <section className="cc-card p-6">
-            <div className="overline mb-3">Finance</div>
+            <div className="flex items-center justify-between mb-3">
+              <div className="cc-overline">Finance</div>
+              <div className="flex items-center gap-2">
+                {invoice ? (
+                  <>
+                    <a
+                      href={api.fileUrl(invoice.id)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="cc-btn-ghost inline-flex items-center gap-2 text-xs"
+                      data-testid="btn-download-invoice"
+                    >
+                      <Download size={13} /> Download invoice
+                    </a>
+                    <button
+                      onClick={onGenerateInvoice}
+                      disabled={invoiceLoading}
+                      className="cc-btn-ghost inline-flex items-center gap-2 text-xs"
+                      data-testid="btn-regenerate-invoice"
+                      title="Regenerate invoice"
+                    >
+                      <RefreshCw size={13} className={invoiceLoading ? "animate-spin" : ""} />
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={onGenerateInvoice}
+                    disabled={invoiceLoading}
+                    className="cc-btn-ghost inline-flex items-center gap-2 text-xs"
+                    data-testid="btn-generate-invoice"
+                  >
+                    <FileText size={13} /> {invoiceLoading ? "Generating…" : "Generate invoice"}
+                  </button>
+                )}
+              </div>
+            </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-              <div><div className="overline">Gross</div><div className="serif text-2xl" style={{ color: "var(--cc-forest)" }}>{formatMoney(b.gross_amount, b.currency)}</div></div>
-              <div><div className="overline">Commission</div><div className="serif text-2xl" style={{ color: "var(--cc-terracotta)" }}>{formatMoney(fin.commission, b.currency)}</div></div>
-              <div><div className="overline">Net owner</div><div className="serif text-2xl" style={{ color: "var(--cc-forest)" }}>{formatMoney(fin.net, b.currency)}</div></div>
-              <div><div className="overline">Balance due</div><div className="serif text-2xl" style={{ color: "var(--cc-forest)" }}>{formatMoney(fin.balance, b.currency)}</div></div>
+              <div><div className="cc-overline">Gross</div><div className="serif text-2xl" style={{ color: "var(--cc-forest)" }}>{formatMoney(b.gross_amount, b.currency)}</div></div>
+              <div><div className="cc-overline">Commission</div><div className="serif text-2xl" style={{ color: "var(--cc-terracotta)" }}>{formatMoney(fin.commission, b.currency)}</div></div>
+              <div><div className="cc-overline">Net owner</div><div className="serif text-2xl" style={{ color: "var(--cc-forest)" }}>{formatMoney(fin.net, b.currency)}</div></div>
+              <div><div className="cc-overline">Balance due</div><div className="serif text-2xl" style={{ color: "var(--cc-forest)" }}>{formatMoney(fin.balance, b.currency)}</div></div>
             </div>
             <Row label="Deposit" value={`${formatMoney(b.deposit_amount, b.currency)} · ${b.deposit_paid ? "paid" : "not paid"}`} />
             <Row label="Cleaning fee" value={formatMoney(b.cleaning_fee, b.currency)} />
@@ -86,7 +177,7 @@ export default function BookingDetail() {
           </section>
 
           <section className="cc-card p-6">
-            <div className="overline mb-3">Requests & notes</div>
+            <div className="cc-overline mb-3">Requests & notes</div>
             <Row label="Special requests" value={b.special_requests} />
             <Row label="Food preferences" value={b.food_preferences} />
             <Row label="Allergies" value={b.allergies} />
@@ -100,7 +191,7 @@ export default function BookingDetail() {
 
         <div className="space-y-6">
           <section className="cc-card p-6">
-            <div className="overline mb-3">Operational checklist</div>
+            <div className="cc-overline mb-3">Operational checklist</div>
             <ul className="space-y-2">
               {CHECKLIST_ITEMS.map((c) => (
                 <li key={c.key} className="flex items-center gap-2 text-sm">
@@ -116,15 +207,88 @@ export default function BookingDetail() {
             </ul>
           </section>
           <section className="cc-card p-6">
-            <div className="overline mb-3">Linked experiences</div>
+            <div className="flex items-center justify-between mb-3">
+              <div className="cc-overline">Linked experiences</div>
+              {!addingExperience && (
+                <button
+                  className="cc-btn-ghost inline-flex items-center gap-1 text-xs"
+                  onClick={() => setAddingExperience(true)}
+                  data-testid="btn-add-experience-link"
+                >
+                  <Plus size={13} /> Add
+                </button>
+              )}
+            </div>
+            {addingExperience && (
+              <select
+                className="cc-input mb-3"
+                autoFocus
+                defaultValue=""
+                onChange={(e) => linkExperience(e.target.value)}
+                onBlur={() => setAddingExperience(false)}
+                data-testid="select-link-experience"
+              >
+                <option value="">Select an experience…</option>
+                {experiences
+                  .filter((e) => !(b.experience_ids || []).includes(e.id))
+                  .map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
+              </select>
+            )}
             {(b.experience_ids || []).length === 0 ? (
               <p className="text-sm" style={{ color: "var(--cc-muted)" }}>No experiences linked.</p>
             ) : (
               <ul className="space-y-1 text-sm">
                 {(b.experience_ids || []).map((eid) => {
                   const e = experiences.find((x) => x.id === eid);
-                  return <li key={eid}>{e?.name || eid}</li>;
+                  return (
+                    <li key={eid} className="flex items-center justify-between gap-2 py-1">
+                      <span>{e?.name || eid}</span>
+                      <button
+                        className="cc-btn-ghost p-1"
+                        onClick={() => unlinkExperience(eid)}
+                        data-testid={`unlink-experience-${eid}`}
+                        title="Unlink experience"
+                      >
+                        <X size={13} />
+                      </button>
+                    </li>
+                  );
                 })}
+              </ul>
+            )}
+          </section>
+
+          <section className="cc-card p-6">
+            <div className="cc-overline mb-3">Linked tasks</div>
+            {tasks.length === 0 ? (
+              <p className="text-sm" style={{ color: "var(--cc-muted)" }}>No tasks linked to this booking.</p>
+            ) : (
+              <ul className="space-y-2 text-sm">
+                {tasks.map((t) => (
+                  <li key={t.id} className="flex items-center justify-between gap-2">
+                    <span style={{ textDecoration: t.status === "done" ? "line-through" : "none" }}>{t.title}</span>
+                    <span className="text-xs" style={{ color: "var(--cc-muted)" }}>{t.status.replace("_", " ")}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          <section className="cc-card p-6">
+            <div className="cc-overline mb-3">Linked documents</div>
+            {documents.length === 0 ? (
+              <p className="text-sm" style={{ color: "var(--cc-muted)" }}>No documents linked to this booking.</p>
+            ) : (
+              <ul className="space-y-2 text-sm">
+                {documents.map((d) => (
+                  <li key={d.id} className="flex items-center justify-between gap-2">
+                    {d.file_url ? (
+                      <a href={d.file_url} target="_blank" rel="noreferrer" style={{ color: "var(--cc-olive)" }}>{d.title}</a>
+                    ) : (
+                      <span>{d.title}</span>
+                    )}
+                  </li>
+                ))}
               </ul>
             )}
           </section>
