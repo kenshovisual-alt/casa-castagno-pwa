@@ -25,9 +25,13 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 ROOT_DIR = Path(__file__).parent
-DB_PATH = Path(os.environ["DB_PATH"]) if os.environ.get("DB_PATH") else ROOT_DIR / "casa_castagno.db"
-INVOICES_DIR = Path(os.environ["INVOICES_DIR"]) if os.environ.get("INVOICES_DIR") else ROOT_DIR / "invoices"
-INVOICES_DIR.mkdir(exist_ok=True)
+# Vercel's serverless runtime only allows writes under /tmp (everything else is read-only
+# and reset per cold start), so default there when running on Vercel.
+_ON_VERCEL = bool(os.environ.get("VERCEL"))
+_DEFAULT_DATA_DIR = Path("/tmp") if _ON_VERCEL else ROOT_DIR
+DB_PATH = Path(os.environ["DB_PATH"]) if os.environ.get("DB_PATH") else _DEFAULT_DATA_DIR / "casa_castagno.db"
+INVOICES_DIR = Path(os.environ["INVOICES_DIR"]) if os.environ.get("INVOICES_DIR") else _DEFAULT_DATA_DIR / "invoices"
+INVOICES_DIR.mkdir(parents=True, exist_ok=True)
 engine = create_engine(f"sqlite:///{DB_PATH}", connect_args={"check_same_thread": False})
 
 
@@ -596,6 +600,13 @@ def _migrate_missing_columns():
 async def lifespan(app: FastAPI):
     SQLModel.metadata.create_all(engine)
     _migrate_missing_columns()
+    if _ON_VERCEL:
+        # Serverless cold starts get a fresh /tmp each time (no persistent disk), so
+        # auto-seed demo data whenever the bookings table comes up empty.
+        with Session(engine) as session:
+            has_bookings = session.exec(select(Booking)).first() is not None
+        if not has_bookings:
+            seed_data()
     yield
 
 
